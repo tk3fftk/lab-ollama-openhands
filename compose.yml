@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  openhands-app:
+    image: docker.all-hands.dev/all-hands-ai/runtime:0.29-nikolaik
+    container_name: openhands-app
+    environment:
+      SANDBOX_RUNTIME_CONTAINER_IMAGE: "docker.all-hands.dev/all-hands-ai/runtime:0.29-nikolaik"
+      LLM_API_KEY: "dummy" # 任意の文字列で可
+      LLM_BASE_URL: "http://host.docker.internal:11434"
+      LOG_ALL_EVENTS: "true"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ~/.openhands-state:/.openhands-state
+    ports:
+      - "3000:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    network_mode: host # 外部モデルダウンロードのため必須
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+
+volumes:
+  ollama_data:
+    name: ollama_data
