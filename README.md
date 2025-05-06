@@ -55,6 +55,14 @@ curl --request POST \
 }'
 ```
 
+## Open WebUI
+
+https://github.com/open-webui/open-webui
+
+```sh
+docker run -d -p 3000:8080 --add-host=host.docker.internal:host-gateway -v open-webui:/app/backend/data --name open-webui --restart always ghcr.io/open-webui/open-webui:main
+```
+
 ## References
 
 - [OpenHandsをOllamaをwsl2を使って完全ローカルで動かしてみる。 - 地平線まで行ってくる。](https://bwgift.hatenadiary.jp/entry/2025/02/24/233957)
