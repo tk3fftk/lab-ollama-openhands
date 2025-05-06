@@ -1,0 +1,5 @@
+model_list:
+  - model_name: github-gpt-4o-mini # Model Alias to use for requests
+    litellm_params:
+      model: github/gpt-4.1-mini
+      api_key: "os.environ/GITHUB_API_KEY" # ensure you have `GITHUB_API_KEY` in your .env
