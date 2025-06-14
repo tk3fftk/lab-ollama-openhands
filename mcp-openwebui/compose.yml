@@ -1,0 +1,66 @@
+version: "3.8"
+
+services:
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    pull_policy: always
+    restart: always
+    volumes:
+      - open-webui:/app/backend/data
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl --silent --fail http://localhost:${PORT:-8080}/health | jq -ne 'input.status == true' || exit 1",
+        ]
+    environment:
+      - ENV=prod
+      - PORT=8080
+      - USE_OLLAMA_DOCKER=false
+      - OLLAMA_BASE_URL=/ollama
+      - ANONYMIZED_TELEMETRY=false
+      - SCARF_NO_ANALYTICS=true
+      - DO_NOT_TRACK=true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command: bash start.sh
+    user: "0:0"
+  mcpo:
+    image: ghcr.io/open-webui/mcpo:main
+    container_name: mcpo
+    pull_policy: always
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    command: "--api-key top-secret -- npx mcp-remote http://host.docker.internal:8787/sse --allow-http"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    pull_policy: always
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    profiles:
+      - ollama
+
+volumes:
+  open-webui:
+    name: open-webui
+  ollama_data:
+    name: ollama_data
